@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isSendGridConfigured, sendOtpEmail } from "@/lib/sendgrid";
 import { setOtp } from "@/lib/otp-store";
-
-const ALLOWED_DOMAIN = "solarpros.io";
+import { isAllowedLoginEmail } from "@/lib/auth-domain";
 const OTP_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0,O,1,I
 const OTP_LENGTH = 7;
 
@@ -39,8 +38,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
-  const domain = email.split("@")[1];
-  if (domain !== ALLOWED_DOMAIN) {
+  if (!isAllowedLoginEmail(email)) {
     return NextResponse.json(
       { error: "Only @solarpros.io email addresses are allowed" },
       { status: 403 }

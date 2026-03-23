@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyOtp } from "@/lib/otp-store";
 import { setSessionCookie } from "@/lib/session";
-
-const ALLOWED_DOMAIN = "solarpros.io";
+import { isAllowedLoginEmail } from "@/lib/auth-domain";
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -23,8 +22,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
-  const domain = email.split("@")[1];
-  if (domain !== ALLOWED_DOMAIN) {
+  if (!isAllowedLoginEmail(email)) {
     return NextResponse.json(
       { error: "Only @solarpros.io email addresses are allowed" },
       { status: 403 }

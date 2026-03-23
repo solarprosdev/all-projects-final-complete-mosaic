@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
+import { isAllowedLoginEmail } from "@/lib/auth-domain";
 import ProjectsTable from "@/components/ProjectsTable";
 import UserMenu from "@/components/UserMenu";
 
@@ -68,9 +69,14 @@ export default function Home() {
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const normalized = email.trim().toLowerCase();
+    if (!isAllowedLoginEmail(normalized)) {
+      setError("Sign in with your @solarpros.io email.");
+      return;
+    }
     setBusy(true);
     try {
-      await sendCode(email.trim().toLowerCase());
+      await sendCode(normalized);
       setStep("code");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -82,9 +88,14 @@ export default function Home() {
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const normalized = email.trim().toLowerCase();
+    if (!isAllowedLoginEmail(normalized)) {
+      setError("Sign in with your @solarpros.io email.");
+      return;
+    }
     setBusy(true);
     try {
-      await verifyCode(email.trim().toLowerCase(), code);
+      await verifyCode(normalized, code);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Invalid or expired code");
     } finally {
@@ -143,7 +154,7 @@ export default function Home() {
 
             <button
               type="submit"
-              disabled={busy || !email}
+              disabled={busy || !isAllowedLoginEmail(email.trim())}
               className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-[#8b0000] py-3 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-[#a00000] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
               {busy && (
@@ -214,11 +225,6 @@ export default function Home() {
             </button>
           </form>
         )}
-
-        {/* Footer */}
-        <p className="mt-8 text-center text-[11px] text-gray-300">
-          &copy; {new Date().getFullYear()} Solar Pros
-        </p>
       </div>
     </div>
   );
